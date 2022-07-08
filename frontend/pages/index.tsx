@@ -30,7 +30,7 @@ interface EventListProps {
 interface EventProps {
 	event: Event;
 	deleteHandler: (eventId: number) => Promise<void>;
-	updateHandler: (eventId: number, active:boolean) => Promise<void>;
+	updateHandler: (eventId: number, active: boolean) => Promise<void>;
 }
 
 interface ItemListProps {
@@ -109,18 +109,21 @@ const EventList: FC<EventListProps> = (props) => {
 
 	const updateHandler = useCallback(
 		async (eventId: number, active: boolean) => {
-      let updatedEvent:Event;
+			let updatedEvent: Event;
 			try {
-				let updatedEventRes = await axios.patch<{ event: Event }>(`http://localhost:5000/event/${eventId}`, { active });
-        updatedEvent = updatedEventRes.data.event;
-        console.log(updatedEvent);
+				let updatedEventRes = await axios.patch<{ event: Event }>(
+					`http://localhost:5000/event/${eventId}`,
+					{ active }
+				);
+				updatedEvent = updatedEventRes.data.event;
+				console.log(updatedEvent);
 			} catch (e) {
 				console.error(e);
 				return;
 			}
 			setEvents((events) => {
 				const newEvents = events.filter((event) => event.id !== eventId);
-        newEvents.push(updatedEvent);
+				newEvents.push(updatedEvent);
 				return newEvents;
 			});
 			return;
@@ -154,7 +157,12 @@ const Event: FC<EventProps> = (props) => {
 		<div key={props.event.id}>
 			EVENT {props.event.name}
 			<ItemList items={props.event.items} eventId={props.event.id} />
-			<button className="btn btn-primary" onClick={()=> {props.updateHandler(props.event.id, !props.event.active)}}>
+			<button
+				className="btn btn-primary"
+				onClick={() => {
+					props.updateHandler(props.event.id, !props.event.active);
+				}}
+			>
 				{props.event.active ? "ONGOING" : "DONE"}
 			</button>
 			<button
@@ -185,7 +193,27 @@ const NewEventForm: FC<FormProps> = (props) => {
 	return (
 		<div className="flex items-center border-y-2 gap-3">
 			NEW EVENT FORM
-			<form className="flex flex-col items-center" onSubmit={(e)=> props.onSubmit(e)}>
+			<form
+				className="flex flex-col items-center"
+				onSubmit={(e) => props.onSubmit(e)}
+			>
+				<textarea className="border-2" />
+				<button type="submit" className="btn w-1/2">
+					SUBMIT{" "}
+				</button>
+			</form>
+		</div>
+	);
+};
+
+const NewItemForm: FC<FormProps> = (props) => {
+	return (
+		<div className="flex items-center border-y-2 gap-3">
+			NEW EVENT FORM
+			<form
+				className="flex flex-col items-center"
+				onSubmit={(e) => props.onSubmit(e)}
+			>
 				<textarea className="border-2" />
 				<button type="submit" className="btn w-1/2">
 					SUBMIT{" "}
@@ -196,16 +224,91 @@ const NewEventForm: FC<FormProps> = (props) => {
 };
 
 const ItemList: FC<ItemListProps> = (props) => {
+	const [items, setItems] = useState(props.items || []);
+
+	const submitHandler = useCallback(async (e: FormEvent, eventId: number) => {
+		e.preventDefault();
+		let itemName = e.target[0].value;
+		let newItemRes;
+		let newItem: Item;
+
+		const deleteHandler = useCallback(async (itemId: number) => {
+			try {
+				await axios.delete(`http://localhost:5000/event/${eventId}`);
+			} catch (e) {
+				console.error(e);
+				return;
+			}
+			setItems((items) => items.filter((item) => item.id !== itemId));
+			return;
+		}, []);
+
+		try {
+			newItemRes = await axios.post<{ item: Item }>(
+				"http://localhost:5000/item",
+				{
+					eventId,
+					name: itemName,
+					purchased: true,
+				}
+			);
+			console.log(newItemRes);
+		} catch (e) {
+			console.error(e);
+			return;
+		}
+		newItem = newItemRes.data.item;
+
+		setItems((tems) => {
+			let newitems = items.slice(0);
+			newitems.push(newItem);
+			return newitems;
+		});
+	}, []);
+
 	return (
 		<div>
-			ITEM LIST
-			<Item />
+			<NewItemForm
+				onSubmit={(e) => {
+					submitHandler(e, props.eventId);
+				}}
+			/>
+			{items &&
+				items.map((ev) => {
+					return (
+						<Event
+							event={ev}
+							deleteHandler={deleteHandler}
+							updateHandler={updateHandler}
+						/>
+					);
+				})}
 		</div>
 	);
 };
 
-const Item: FC = () => {
-	return <div>ITEM</div>;
+const Item: FC = (props) => {
+	return (
+		<div key={props.item.id}>
+			EVENT {props.item.name}
+			<button
+				className="btn btn-primary"
+				onClick={() => {
+					props.updateHandler(props.item.id, !props.item.active);
+				}}
+			>
+				{props.item.purchased ? "TO BE PURCHASED" : "PURCHASED"}
+			</button>
+			<button
+				className="btn btn-error"
+				onClick={() => {
+					props.deleteHandler(props.item.id);
+				}}
+			>
+				DELETE ITEM
+			</button>
+		</div>
+	);
 };
 
 export default Home;
