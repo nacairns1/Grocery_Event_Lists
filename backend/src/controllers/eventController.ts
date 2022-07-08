@@ -1,54 +1,79 @@
-import { PrismaClient } from "@prisma/client"
+import { PrismaClient } from "@prisma/client";
 import { RequestHandler } from "express";
 const prisma = new PrismaClient();
 
+const getEvents: RequestHandler = async (req, res) => {
+	let events;
 
-const getEvents: RequestHandler = async (Req, Res) => {
-    let events;
+	try {
+		events = await prisma.event.findMany();
+	} catch (e) {
+		console.error(e);
+		return res.status(400).send({ message: "Error finding events" });
+	}
 
-    try {
+	return res.status(200).send({ events });
+};
 
-    } catch (e) {
+const createNewEvent: RequestHandler = async (req, res) => {
+	let { name, active } = req.body;
 
-    }
+	let newEvent;
 
+	try {
+		newEvent = await prisma.event.create({ data: { name, active } });
+	} catch (e) {
+		console.error(e);
+		return res.status(400).send({ message: "Error creating event" });
+	}
 
+	return res.status(201).send({ event: newEvent });
+};
+
+interface EventRequest {
+	name?: string;
+	active?: boolean;
 }
 
-const createNewEvent: RequestHandler =async  (Req, Res) => {
-    
+const editEventById: RequestHandler = async (req, res) => {
+	let eventId = parseInt(req.params.eventId);
+	let { name, active } = req.body;
 
-    try {
+	let eventRequest: EventRequest = {};
+	if (name !== undefined) {
+		eventRequest.name = name;
+	}
+	if (active !== undefined) {
+		eventRequest.active = active;
+	}
 
-    } catch (e) {
-        
-    }
-}
+	let editedEvent;
 
-const editEventById: RequestHandler = async (Req, Res) => {
+	try {
+		editedEvent = await prisma.event.update({
+			where: { id: eventId },
+			data: eventRequest,
+		});
+	} catch (e) {
+		console.error(e);
+		return res.status(400).send({ message: "Error editing event" });
+	}
 
-    try {
+	return res.status(201).send({ event: editedEvent });
+};
 
-    } catch (e) {
-        
-    }
-    
-}
+const deleteEventById: RequestHandler = async (req, res) => {
+	let eventId = parseInt(req.params.eventId);
 
-const deleteEventById: RequestHandler = async (Req, Res) => {
-    
+	let deletedEvent;
+	try {
+		deletedEvent = await prisma.event.delete({ where: { id: eventId } });
+	} catch (e) {
+		console.error(e);
+		return res.status(400).send({ message: "Error deleting event" });
+	}
 
-    try {
+	return res.status(200).send({ event: deletedEvent });
+};
 
-    } catch (e) {
-        
-    }
-}
-
-
-
-
-
-
-
-export {getEvents, createNewEvent, editEventById, deleteEventById}
+export { getEvents, createNewEvent, editEventById, deleteEventById };
