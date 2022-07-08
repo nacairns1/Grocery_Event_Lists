@@ -1,5 +1,5 @@
 import type { NextPage } from 'next'
-import { FC, useState } from 'react'
+import { FC, useCallback, useState } from 'react'
 import axios from 'axios'
 
 interface Event {
@@ -57,11 +57,35 @@ Home.getInitialProps = async () => {
 const EventList:FC<EventListProps> = (props) => {
   const [events, setEvents] = useState(props.events);
 
+  const submitHandler = useCallback(async (e: SubmitEvent) => {
+		e.preventDefault();
+		let eventName = e.target[0].value;
+    
+		let newEventRes;
+		let newEvent: Event;
+
+		try {
+			newEventRes = await axios.post<Event>("http://localhost:5000/event", {
+				name: eventName,
+				active: true,
+			});
+		} catch (e) {
+			console.error(e);
+      return;
+		}
+		newEvent = newEventRes.data.event;
+  
+		setEvents((events) => {
+			let newEvents = events.slice(0);
+			newEvents.push(newEvent);
+			return newEvents;
+		});
+	}, []);
 
   return (<div>  
     EVENT LIST
     <EventSearch/>
-    <NewEventForm/>
+    <NewEventForm onSubmit={submitHandler}/>
     {events && events.map(ev => {
       return <Event event={ev}/>
     })}
@@ -80,18 +104,22 @@ const Event:FC<EventProps> = (props) => {
 }
 
 const EventSearch:FC = () => {
-  return (<div>
+  return (<div className='flex items-center border-y-2 gap-3'>
     EVENT SEARCH
-    <textarea/>
+    <textarea className='border-2'/>
   </div>)
 }
 
-const NewEventForm:FC = () => {
-  return (<div>
+
+interface FormProps {
+  onSubmit: () => Promise<void>
+}
+const NewEventForm:FC<FormProps> = (props) => {
+  return (<div className='flex items-center border-y-2 gap-3'>
     NEW EVENT FORM
-    <form>
-      <textarea/> 
-      <button type="submit">SUBMIT </button> 
+    <form className='flex flex-col items-center' onSubmit={props.onSubmit}>
+      <textarea className='border-2'/> 
+      <button type="submit" className='btn w-1/2'>SUBMIT </button> 
     </form>
   </div>)
 }
