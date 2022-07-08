@@ -135,7 +135,6 @@ const EventList: FC<EventListProps> = (props) => {
 	return (
 		<div>
 			EVENT LIST
-			<EventSearch />
 			<NewEventForm onSubmit={submitHandler} />
 			{events &&
 				events.map((ev) => {
@@ -155,34 +154,29 @@ const Event: FC<EventProps> = (props) => {
 	const [items, setItems] = useState(props.event.items);
 
 	return (
-		<div key={props.event.id}>
-			{props.event.name}
-			<button
-				className="btn btn-primary"
-				onClick={() => {
-					props.updateHandler(props.event.id, !props.event.active);
-				}}
-			>
-				{props.event.active ? "ONGOING" : "DONE"}
-			</button>
-			<button
-				className="btn btn-error"
-				onClick={() => {
-					props.deleteHandler(props.event.id);
-				}}
-			>
-				DELETE EVENT
-			</button>
+		<div key={props.event.id} className="flex flex-col">
+			<div className="flex justify-between w-1/2 my-10">
+				{props.event.name}
+				<div className="btn-group">
+					<button
+						className="btn btn-primary"
+						onClick={() => {
+							props.updateHandler(props.event.id, !props.event.active);
+						}}
+					>
+						{props.event.active ? "ONGOING" : "DONE"}
+					</button>
+					<button
+						className="btn btn-error"
+						onClick={() => {
+							props.deleteHandler(props.event.id);
+						}}
+					>
+						DELETE EVENT
+					</button>
+				</div>
+			</div>
 			<ItemList items={props.event.items} eventId={props.event.id} />
-		</div>
-	);
-};
-
-const EventSearch: FC = () => {
-	return (
-		<div className="flex items-center border-y-2 gap-3">
-			EVENT SEARCH
-			<textarea className="border-2" />
 		</div>
 	);
 };
@@ -192,7 +186,7 @@ interface FormProps {
 }
 const NewEventForm: FC<FormProps> = (props) => {
 	return (
-		<div className="flex items-center border-y-2 gap-3">
+		<div className="flex flex-col items-center border-y-2 gap-3">
 			NEW EVENT FORM
 			<form
 				className="flex flex-col items-center"
@@ -297,7 +291,7 @@ const ItemList: FC<ItemListProps> = (props) => {
 	);
 
 	return (
-		<div>
+		<div className="text-3xl font-normal">
 			{items &&
 				items.map((item) => {
 					return (
@@ -320,24 +314,26 @@ const ItemList: FC<ItemListProps> = (props) => {
 
 const Item: FC<ItemProps> = (props) => {
 	return (
-		<div key={props.item.id}>
+		<div key={props.item.id} className="flex justify-around gap-2 w-1/2">
 			ITEM: {props.item.name}
-			<button
-				className="btn btn-primary"
-				onClick={() => {
-					props.updateHandler(props.item.id, !props.item.purchased);
-				}}
-			>
-				{props.item.purchased ? "TO BE PURCHASED" : "PURCHASED"}
-			</button>
-			<button
-				className="btn btn-error"
-				onClick={() => {
-					props.deleteHandler(props.item.id);
-				}}
-			>
-				DELETE ITEM
-			</button>
+			<div className="btn-group">
+				<button
+					className="btn btn-primary "
+					onClick={() => {
+						props.updateHandler(props.item.id, !props.item.purchased);
+					}}
+				>
+					{props.item.purchased ? "TO BE PURCHASED" : "PURCHASED"}
+				</button>
+				<button
+					className="btn btn-error"
+					onClick={() => {
+						props.deleteHandler(props.item.id);
+					}}
+				>
+					DELETE ITEM
+				</button>
+			</div>
 		</div>
 	);
 };
