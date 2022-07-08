@@ -39,7 +39,7 @@ interface ItemListProps {
 }
 
 interface ItemProps {
-  item: Item;
+	item: Item;
 	eventId: number;
 	deleteHandler: (eventId: number) => Promise<void>;
 	updateHandler: (eventId: number, active: boolean) => Promise<void>;
@@ -157,7 +157,7 @@ const Event: FC<EventProps> = (props) => {
 	return (
 		<div key={props.event.id}>
 			{props.event.name}
-      <button
+			<button
 				className="btn btn-primary"
 				onClick={() => {
 					props.updateHandler(props.event.id, !props.event.active);
@@ -174,7 +174,6 @@ const Event: FC<EventProps> = (props) => {
 				DELETE EVENT
 			</button>
 			<ItemList items={props.event.items} eventId={props.event.id} />
-
 		</div>
 	);
 };
@@ -226,15 +225,13 @@ const NewItemForm: FC<FormProps> = (props) => {
 };
 
 const ItemList: FC<ItemListProps> = (props) => {
-	const [items, setItems] = useState(props.items || []);
+	const [items, setItems] = useState(props.items);
 
 	const submitHandler = useCallback(async (e: FormEvent, eventId: number) => {
 		e.preventDefault();
 		let itemName = e.target[0].value;
 		let newItemRes;
 		let newItem: Item;
-
-
 
 		try {
 			newItemRes = await axios.post<{ item: Item }>(
@@ -252,25 +249,30 @@ const ItemList: FC<ItemListProps> = (props) => {
 		}
 		newItem = newItemRes.data.item;
 
-		setItems((tems) => {
-			let newitems = items.slice(0);
-			newitems.push(newItem);
-			return newitems;
+		setItems((items) => {
+			let newItems: Item[];
+			if (items === undefined) {
+				newItems = [];
+			} else {
+				newItems = items.slice(0);
+			}
+			newItems.push(newItem);
+			return newItems;
 		});
 	}, []);
 
-  const deleteHandler = useCallback(async (itemId: number) => {
-    try {
-      await axios.delete(`http://localhost:5000/item/${itemId}`);
-    } catch (e) {
-      console.error(e);
-      return;
-    }
-    setItems((items) => items.filter((item) => item.id !== itemId));
-    return;
-  }, []);
+	const deleteHandler = useCallback(async (itemId: number) => {
+		try {
+			await axios.delete(`http://localhost:5000/item/${itemId}`);
+		} catch (e) {
+			console.error(e);
+			return;
+		}
+		setItems((items) => items.filter((item) => item.id !== itemId));
+		return;
+	}, []);
 
-  const updateHandler = useCallback(
+	const updateHandler = useCallback(
 		async (itemId: number, purchased: boolean) => {
 			let updatedItem: Item;
 			try {
@@ -294,30 +296,27 @@ const ItemList: FC<ItemListProps> = (props) => {
 		[]
 	);
 
-  
-
 	return (
 		<div>
-			<NewItemForm
-				onSubmit={(e) => {
-					submitHandler(e, props.eventId);
-				}}
-			/>
 			{items &&
 				items.map((item) => {
 					return (
-						<Item 
-              eventId={props.eventId}
-              item={item}
+						<Item
+							eventId={props.eventId}
+							item={item}
 							deleteHandler={deleteHandler}
 							updateHandler={updateHandler}
 						/>
 					);
 				})}
+			<NewItemForm
+				onSubmit={(e) => {
+					submitHandler(e, props.eventId);
+				}}
+			/>
 		</div>
 	);
 };
-
 
 const Item: FC<ItemProps> = (props) => {
 	return (

@@ -6,10 +6,10 @@ const getEvents: RequestHandler = async (req, res) => {
 	let events;
 
 	try {
-		events = await prisma.event.findMany();
+		events = await prisma.event.findMany({include:{items: true}});
 	} catch (e) {
 		console.error(e);
-		return res.status(400).send({ message: "Error finding events" });
+		return res.status(400).send({ message: "Error finding events"});
 	}
 
 	return res.status(200).send({ events });
