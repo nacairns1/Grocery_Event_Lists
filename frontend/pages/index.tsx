@@ -121,7 +121,8 @@ const Event:FC<EventProps> = (props) => {
       EVENT {props.event.name}
       <ItemList items={props.event.items} eventId={props.event.id}/>
       
-      <button></button>
+      <button className='btn btn-primary'>{props.event.active ? "ONGOING" : "DONE"}</button>
+      <button className='btn btn-error' onClick={()=> {props.deleteHandler(props.event.id)}}>DELETE EVENT</button>
     </div>
   )
 }
@@ -135,7 +136,7 @@ const EventSearch:FC = () => {
 
 
 interface FormProps {
-  onSubmit:EventHandler<FormEvent>;
+  onSubmit:(event: SubmitEvent) => Promise<void>;
 }
 const NewEventForm:FC<FormProps> = (props) => {
   return (<div className='flex items-center border-y-2 gap-3'>
