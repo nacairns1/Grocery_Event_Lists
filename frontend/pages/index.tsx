@@ -156,9 +156,8 @@ const Event: FC<EventProps> = (props) => {
 
 	return (
 		<div key={props.event.id}>
-			EVENT {props.event.name}
-			<ItemList items={props.event.items} eventId={props.event.id} />
-			<button
+			{props.event.name}
+      <button
 				className="btn btn-primary"
 				onClick={() => {
 					props.updateHandler(props.event.id, !props.event.active);
@@ -174,6 +173,8 @@ const Event: FC<EventProps> = (props) => {
 			>
 				DELETE EVENT
 			</button>
+			<ItemList items={props.event.items} eventId={props.event.id} />
+
 		</div>
 	);
 };
@@ -210,7 +211,7 @@ const NewEventForm: FC<FormProps> = (props) => {
 const NewItemForm: FC<FormProps> = (props) => {
 	return (
 		<div className="flex items-center border-y-2 gap-3">
-			NEW EVENT FORM
+			NEW ITEM FORM
 			<form
 				className="flex flex-col items-center"
 				onSubmit={(e) => props.onSubmit(e)}
@@ -260,7 +261,7 @@ const ItemList: FC<ItemListProps> = (props) => {
 
   const deleteHandler = useCallback(async (itemId: number) => {
     try {
-      await axios.delete(`http://localhost:5000/event/${eventId}`);
+      await axios.delete(`http://localhost:5000/item/${itemId}`);
     } catch (e) {
       console.error(e);
       return;
@@ -321,7 +322,7 @@ const ItemList: FC<ItemListProps> = (props) => {
 const Item: FC<ItemProps> = (props) => {
 	return (
 		<div key={props.item.id}>
-			EVENT {props.item.name}
+			ITEM: {props.item.name}
 			<button
 				className="btn btn-primary"
 				onClick={() => {
