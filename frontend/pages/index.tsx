@@ -1,5 +1,5 @@
 import type { NextPage } from 'next'
-import { FC } from 'react'
+import { FC, useState } from 'react'
 import axios from 'axios'
 
 interface Event {
@@ -19,6 +19,15 @@ interface EventListProps {
   events: Event[]
 }
 
+interface EventProps {
+  event: Event
+}
+
+interface ItemListProps{
+  items: Item[];
+  eventId: number
+}
+
 
 const Home: NextPage<EventListProps> = (props) => {
   return (
@@ -28,7 +37,7 @@ const Home: NextPage<EventListProps> = (props) => {
   )
 }
 
-Home.getInitialProps = async (ctx) => {
+Home.getInitialProps = async () => {
 
   let events: Event[] = [];
   try {
@@ -45,15 +54,29 @@ Home.getInitialProps = async (ctx) => {
 
 
 
-const EventList:FC<EventListProps> = () => {
-  
-  
+const EventList:FC<EventListProps> = (props) => {
+  const [events, setEvents] = useState(props.events);
+
+
   return (<div>  
     EVENT LIST
     <EventSearch/>
     <NewEventForm/>
-    <Event/>
+    {events && events.map(ev => {
+      return <Event event={ev}/>
+    })}
   </div>)
+}
+
+const Event:FC<EventProps> = (props) => {
+  const [items, setItems] = useState(props.event.items);
+
+  return (
+    <div key={props.event.id}>
+      EVENT {props.event.name}
+      <ItemList items={props.event.items} eventId={props.event.id}/>
+    </div>
+  )
 }
 
 const EventSearch:FC = () => {
@@ -73,18 +96,9 @@ const NewEventForm:FC = () => {
   </div>)
 }
 
-const Event:FC = () => {
-  return (
-    <div>
-      EVENT
 
-      <ItemList />
-    </div>
-  )
-}
 
-const ItemList:FC = () => {
-  
+const ItemList:FC<ItemListProps> = (props) => {
   return (
     <div>
       ITEM LIST
