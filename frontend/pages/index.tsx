@@ -1,12 +1,14 @@
 import type { NextPage } from 'next'
-import { FC, useCallback, useState } from 'react'
+import { EventHandler, FC, FormEvent, FormEventHandler, useCallback, useState } from 'react'
 import axios from 'axios'
+import { __ApiPreviewProps } from 'next/dist/server/api-utils';
 
 interface Event {
   id: number;
   name: string;
   active: boolean;
-  items: Item[]
+  items: Item[];
+
 }
 
 interface Item {
@@ -21,6 +23,8 @@ interface EventListProps {
 
 interface EventProps {
   event: Event
+  deleteHandler: (eventId: number)=> Promise<void>;
+  updateHandler: (eventId: number)=> Promise<void>;
 }
 
 interface ItemListProps{
@@ -28,6 +32,11 @@ interface ItemListProps{
   eventId: number
 }
 
+interface ItemProps {
+  eventId: number;
+  deleteHandler: (eventId: number)=> Promise<void>;
+  updateHandler: (eventId: number)=> Promise<void>;
+}
 
 const Home: NextPage<EventListProps> = (props) => {
   return (
@@ -60,12 +69,11 @@ const EventList:FC<EventListProps> = (props) => {
   const submitHandler = useCallback(async (e: SubmitEvent) => {
 		e.preventDefault();
 		let eventName = e.target[0].value;
-    
 		let newEventRes;
 		let newEvent: Event;
 
 		try {
-			newEventRes = await axios.post<Event>("http://localhost:5000/event", {
+			newEventRes = await axios.post<{event: Event}>("http://localhost:5000/event", {
 				name: eventName,
 				active: true,
 			});
@@ -82,12 +90,25 @@ const EventList:FC<EventListProps> = (props) => {
 		});
 	}, []);
 
+  const deleteHandler = useCallback(async (eventId:number) => {
+		try {
+			await axios.delete(`http://localhost:5000/event/${eventId}`);
+		} catch (e) {
+			console.error(e);
+			return;
+		}
+		setEvents((events) => events.filter((event) => event.id !== eventId));
+		return;
+	}, []);
+
+  const updateHandler = useCallback(async () => {}, []);
+
   return (<div>  
     EVENT LIST
     <EventSearch/>
     <NewEventForm onSubmit={submitHandler}/>
     {events && events.map(ev => {
-      return <Event event={ev}/>
+      return <Event event={ev} deleteHandler={deleteHandler} updateHandler={updateHandler}/>
     })}
   </div>)
 }
@@ -99,6 +120,8 @@ const Event:FC<EventProps> = (props) => {
     <div key={props.event.id}>
       EVENT {props.event.name}
       <ItemList items={props.event.items} eventId={props.event.id}/>
+      
+      <button></button>
     </div>
   )
 }
@@ -112,7 +135,7 @@ const EventSearch:FC = () => {
 
 
 interface FormProps {
-  onSubmit: () => Promise<void>
+  onSubmit:EventHandler<FormEvent>;
 }
 const NewEventForm:FC<FormProps> = (props) => {
   return (<div className='flex items-center border-y-2 gap-3'>
