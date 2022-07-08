@@ -1,16 +1,51 @@
 import type { NextPage } from 'next'
 import { FC } from 'react'
+import axios from 'axios'
 
-const Home: NextPage = () => {
+interface Event {
+  id: number;
+  name: string;
+  active: boolean;
+  items: Item[]
+}
+
+interface Item {
+  id: number;
+  name: string;
+  purchased: boolean;
+}
+
+interface EventListProps {
+  events: Event[]
+}
+
+
+const Home: NextPage<EventListProps> = (props) => {
   return (
     <div className='font-extrabold text-5xl'>
-      INITIAL SETUP PAGE
+      <EventList events={props.events}/>
     </div>
   )
 }
 
+Home.getInitialProps = async (ctx) => {
 
-const EventList:FC = () => {
+  let events: Event[] = [];
+  try {
+
+    let eventRequest = await axios.get<{events: Event[]}>('http://localhost:5000/event');
+    events = eventRequest.data.events;
+  } catch (e) {
+    console.error(e);
+  }
+
+  return {events};
+}
+
+
+
+
+const EventList:FC<EventListProps> = () => {
   
   
   return (<div>  
