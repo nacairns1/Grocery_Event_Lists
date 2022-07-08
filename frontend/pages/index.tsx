@@ -39,6 +39,7 @@ interface ItemListProps {
 }
 
 interface ItemProps {
+  item: Item;
 	eventId: number;
 	deleteHandler: (eventId: number) => Promise<void>;
 	updateHandler: (eventId: number, active: boolean) => Promise<void>;
@@ -232,16 +233,7 @@ const ItemList: FC<ItemListProps> = (props) => {
 		let newItemRes;
 		let newItem: Item;
 
-		const deleteHandler = useCallback(async (itemId: number) => {
-			try {
-				await axios.delete(`http://localhost:5000/event/${eventId}`);
-			} catch (e) {
-				console.error(e);
-				return;
-			}
-			setItems((items) => items.filter((item) => item.id !== itemId));
-			return;
-		}, []);
+
 
 		try {
 			newItemRes = await axios.post<{ item: Item }>(
@@ -266,6 +258,43 @@ const ItemList: FC<ItemListProps> = (props) => {
 		});
 	}, []);
 
+  const deleteHandler = useCallback(async (itemId: number) => {
+    try {
+      await axios.delete(`http://localhost:5000/event/${eventId}`);
+    } catch (e) {
+      console.error(e);
+      return;
+    }
+    setItems((items) => items.filter((item) => item.id !== itemId));
+    return;
+  }, []);
+
+  const updateHandler = useCallback(
+		async (itemId: number, purchased: boolean) => {
+			let updatedItem: Item;
+			try {
+				let updatedItemRes = await axios.patch<{ item: Item }>(
+					`http://localhost:5000/item/${itemId}`,
+					{ purchased }
+				);
+				updatedItem = updatedItemRes.data.item;
+				console.log(updatedItem);
+			} catch (e) {
+				console.error(e);
+				return;
+			}
+			setItems((items) => {
+				const newItems = items.filter((item) => item.id !== itemId);
+				newItems.push(updatedItem);
+				return newItems;
+			});
+			return;
+		},
+		[]
+	);
+
+  
+
 	return (
 		<div>
 			<NewItemForm
@@ -274,10 +303,11 @@ const ItemList: FC<ItemListProps> = (props) => {
 				}}
 			/>
 			{items &&
-				items.map((ev) => {
+				items.map((item) => {
 					return (
-						<Event
-							event={ev}
+						<Item 
+              eventId={props.eventId}
+              item={item}
 							deleteHandler={deleteHandler}
 							updateHandler={updateHandler}
 						/>
@@ -287,14 +317,15 @@ const ItemList: FC<ItemListProps> = (props) => {
 	);
 };
 
-const Item: FC = (props) => {
+
+const Item: FC<ItemProps> = (props) => {
 	return (
 		<div key={props.item.id}>
 			EVENT {props.item.name}
 			<button
 				className="btn btn-primary"
 				onClick={() => {
-					props.updateHandler(props.item.id, !props.item.active);
+					props.updateHandler(props.item.id, !props.item.purchased);
 				}}
 			>
 				{props.item.purchased ? "TO BE PURCHASED" : "PURCHASED"}
